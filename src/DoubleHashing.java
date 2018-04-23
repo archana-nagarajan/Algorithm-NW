@@ -9,11 +9,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class DoubleHashing {
 	String traffic = "traffic.txt";
-	private Map<Long,Set<Long>> flowMap = new LinkedHashMap<>();
+	private Map<String, Set<String>> flowMap = new LinkedHashMap<>();
+	
 
 	public static void main(String args[]) throws FileNotFoundException{
 		DoubleHashing db = new DoubleHashing();
@@ -22,15 +24,15 @@ public class DoubleHashing {
 //		printMap(flowMap);
 	}
 	
-	public Map<Long, Set<Long>> getFlowMap() {
+	public Map<String, Set<String>> getFlowMap() {
 		return this.flowMap;
 	}
 
-	public void setFlowMap(Map<Long, Set<Long>> flowMap) {
+	public void setFlowMap(Map<String, Set<String>> flowMap) {
 		this.flowMap = flowMap;
 	}
 
-	public Map<Long,Set<Long>> parseFile(Map<Long,Set<Long>> flowMap) throws FileNotFoundException {
+	public Map<String, Set<String>> parseFile(Map<String, Set<String>> flowMap) throws FileNotFoundException {
 		BufferedReader buffer = new BufferedReader(new FileReader(traffic));
 		String line;
         try {
@@ -38,15 +40,15 @@ public class DoubleHashing {
             while ((line = buffer.readLine()) != null) {
             	line = line.trim().replaceAll(" +", " ");
                 String[] vals = line.trim().split(" ");
-                long sourceIp = getDecimal(vals[0]);
-                long destIp = getDecimal(vals[1]);
-                if(flowMap.containsKey(sourceIp)){
-                	flowMap.get(sourceIp).add(destIp);
+//                long sourceIp = getDecimal(vals[0]);
+//                long destIp = getDecimal(vals[1]);
+                if(flowMap.containsKey(vals[0])){
+                	flowMap.get(vals[0]).add(vals[1]);
                 }
                 else{
-                	Set<Long> destSet = new HashSet<>();
-                	destSet.add(destIp);
-                	flowMap.put(sourceIp,destSet);
+                	Set<String> destSet = new HashSet<>();
+                	destSet.add(vals[1]);
+                	flowMap.put(vals[0],destSet);
                 }
 
             }
@@ -63,7 +65,7 @@ public class DoubleHashing {
         return flowMap;
 	}
 	
-	private void generateOutputFile(Map<Long,Set<Long>> flowMap){
+	private void generateOutputFile(Map<String, Set<String>> flowMap2){
 		PrintWriter writer = null;
 		try {
 			writer = new PrintWriter("double-hashing-output.txt", "UTF-8");
@@ -72,8 +74,8 @@ public class DoubleHashing {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		for (Map.Entry<Long,Set<Long>> entry : flowMap.entrySet()){
-			writer.println(getIpAddress(entry.getKey()) + "\t" + entry.getValue().size());
+		for (Entry<String, Set<String>> entry : flowMap2.entrySet()){
+			writer.println(entry.getKey() + "\t" + entry.getValue().size());
 		}
 		writer.close();
 	}

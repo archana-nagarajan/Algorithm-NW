@@ -1,89 +1,31 @@
-
-
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
 public class VirtualBitmap {
 	
-	static Map<Long,Set<Long>> flowMap = new LinkedHashMap<>();
-	final static int BIT_ARRAY_SIZE = 10000000;
+	static Map<String, Set<String>> flowMap = new LinkedHashMap<>();
+	final static int BIT_ARRAY_SIZE = 100000000;
 	final static int VIRTUAL_VECTOR_SIZE = 150;
 	final static int RAND_SIZE=1000000;
 	static BitSet bitArray = new BitSet(BIT_ARRAY_SIZE);
 	static int R [] = new int [VIRTUAL_VECTOR_SIZE];
-	static Map<Long, BitSet> virtual = new LinkedHashMap<>();
+	static Map<String, BitSet> virtual = new LinkedHashMap<>();
 	static PrintWriter writer = null;
 	public static void main(String[] args) {
 		DoubleHashing db = new DoubleHashing();
-		Random rand = new Random();
 		initializeRandomArray();
 		try {
 			writer = new PrintWriter("virtual-bitmap-output.txt", "UTF-8");
 			flowMap = db.parseFile(flowMap);
-			for (Map.Entry<Long,Set<Long>> entry : flowMap.entrySet()){
-				Set<Long> destinations = entry.getValue();
-				long source = entry.getKey();
-				for(Long dest : destinations){
-					int destHash = Math.floorMod(dest.hashCode() , VIRTUAL_VECTOR_SIZE);
-//					long randomValue = rand.nextInt(destHash <= 0 ? 1 : destHash);
-//					System.out.println(randomValue);
-					Long xor = source ^ R[(int) destHash];
-					int sourceHash = xor.hashCode();
-					int index = Math.floorMod(sourceHash, BIT_ARRAY_SIZE);
-//					System.out.println(index);
-					bitArray.set(index);
-				}
-			}
-//			for (Map.Entry<Long,Set<Long>> entry : flowMap.entrySet()){
-//				long source = entry.getKey();
-//				for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
-//					long randomValue = rand.nextInt(VIRTUAL_VECTOR_SIZE);
-//					Long xor = source ^ R[(int) randomValue];
-//					int sourceHash = xor.hashCode();
-//					int index = Math.floorMod(sourceHash, VIRTUAL_VECTOR_SIZE);
-//					BitSet virtualVector = null;
-//					if(virtual.containsKey(source))
-//						virtualVector  = virtual.get(source);
-//					else{
-//						virtualVector = new BitSet(VIRTUAL_VECTOR_SIZE);
-//						virtual.put(source, virtualVector);
-//					}
-//					virtualVector.set(index);
-//				}
-//			}
-			for (Map.Entry<Long,Set<Long>> entry : flowMap.entrySet()){
-				long source = entry.getKey();
-				Set<Long> destinations = entry.getValue();
-				BitSet virtualVector = null;
-				for(Long dest : destinations){
-					if(virtual.containsKey(source))
-						virtualVector  = virtual.get(source);
-					else{
-						virtualVector = new BitSet(VIRTUAL_VECTOR_SIZE);
-						virtual.put(source, virtualVector);
-					}
-					int destHash = Math.floorMod(dest.hashCode() , VIRTUAL_VECTOR_SIZE);
-					virtualVector.set(destHash);
-				}
-			}
-			
-			long numberOfZeroBitsInBitArray =  BIT_ARRAY_SIZE - bitArray.cardinality();
-			double bBitsFraction = (double) numberOfZeroBitsInBitArray / BIT_ARRAY_SIZE;
-			for (Map.Entry<Long,Set<Long>> entry : flowMap.entrySet()){
-				BitSet v = virtual.get(entry.getKey());
-				int sourceVectorCount = VIRTUAL_VECTOR_SIZE - v.cardinality();
-				double virtualVectorFraction = (double) sourceVectorCount / VIRTUAL_VECTOR_SIZE;
-//				System.out.println(bBitsFraction);
-//				System.out.println(virtualVectorFraction);
-				long flowSpread = (long) (VIRTUAL_VECTOR_SIZE * Math.log(bBitsFraction) - VIRTUAL_VECTOR_SIZE * Math.log(virtualVectorFraction));
-				writer.println(db.getIpAddress(entry.getKey()) + "\t" + (int) flowSpread);
-			}
+			onlineOperation(flowMap);
+			offlineOperation(flowMap);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -95,14 +37,74 @@ public class VirtualBitmap {
 		}
 	}
 	
-	 static void initializeRandomArray() {
-		 int temp;
-		 for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
-			 Random rand = new Random();
-			 temp = (int)rand.nextInt(RAND_SIZE);
-			 R[i] = temp;
-		 	}
-		 }
+	private static void offlineOperation(Map<String, Set<String>> flowMap2) {
+//		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
+//			String source = entry.getKey();
+//			BitSet virtualVector  = new BitSet(VIRTUAL_VECTOR_SIZE);
+//			for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
+//				int value = Math.floorMod(hash(source.hashCode() ^ R[i]), VIRTUAL_VECTOR_SIZE);
+//				if(bitArray.get(value))
+//					virtualVector.set(value);
+//			}
+//			virtual.put(source, virtualVector);
+//		}
+		BitSet virtualVector = null;
+		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
+			String source = entry.getKey();
+			Set<String> destinations = entry.getValue();
+			for(String dest : destinations){
+				if(virtual.containsKey(source))
+					virtualVector  = virtual.get(source);
+				else{
+					virtualVector = new BitSet(VIRTUAL_VECTOR_SIZE);
+					virtual.put(source, virtualVector);
+				}
+				int destHash = Math.floorMod(dest.hashCode() , VIRTUAL_VECTOR_SIZE);
+				int value = Math.floorMod(hash(source.hashCode() ^ R[destHash]) , VIRTUAL_VECTOR_SIZE);
+				virtualVector.set(value);
+			}
+		}
+		long numberOfZeroBitsInBitArray =  BIT_ARRAY_SIZE - bitArray.cardinality();
+		double bBitsFraction = (double) numberOfZeroBitsInBitArray / BIT_ARRAY_SIZE;
+		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
+			BitSet v = virtual.get(entry.getKey());
+			int sourceVectorCount = VIRTUAL_VECTOR_SIZE - v.cardinality();
+			double virtualVectorFraction = (double) sourceVectorCount / VIRTUAL_VECTOR_SIZE;
+			double flowSpread = (double) Math.abs (VIRTUAL_VECTOR_SIZE * Math.log(bBitsFraction) - VIRTUAL_VECTOR_SIZE * Math.log(virtualVectorFraction));
+			writer.println(entry.getKey() + "\t" + entry.getValue().size() + "\t" + (int) Math.ceil(flowSpread));
+		}
+	}
 
+	private static void onlineOperation(Map<String, Set<String>> flowMap2) {
+		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
+			Set<String> destinations = entry.getValue();
+			String source = entry.getKey();
+			for(String dest : destinations){
+				int destHash = Math.floorMod(dest.hashCode() , VIRTUAL_VECTOR_SIZE);
+				Long xor = (long) (source.hashCode() ^ R[(int) destHash]);
+				int sourceHash = hash(xor);
+				int index = Math.floorMod(sourceHash, BIT_ARRAY_SIZE);
+				bitArray.set(index);
+			}
+		}
+	}
 
+	static void initializeRandomArray(){
+		int temp;
+		for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
+			Random rand = new Random();
+			temp = (int)rand.nextInt(RAND_SIZE);
+			R[i] = temp;
+		}
+	}
+	 
+	public static int hash(long key){
+		key = (~key) + (key << 18); // key = (key << 18) - key - 1;
+		key = key ^ (key >>> 31);
+		key = key * 21; // key = (key + (key << 2)) + (key << 4);
+		key = key ^ (key >>> 11);
+		key = key + (key << 6);
+		key = key ^ (key >>> 22);
+		return (int) key;
+	}
 }
