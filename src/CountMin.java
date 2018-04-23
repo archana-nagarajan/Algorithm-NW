@@ -38,6 +38,7 @@ public class CountMin {
 		try {
 			writer = new PrintWriter("CountMin-output.txt", "UTF-8");
 			parseFile();
+			initializeRandomArray();
 			new CountMin(3, flowCount);
 			onlineOperation(flowMap);
 			offlineOperation(flowMap);
@@ -74,8 +75,8 @@ public class CountMin {
 		for (Entry<String, Integer> entry : flowMap.entrySet()){
 			int min = Integer.MAX_VALUE;
 			for(int i = 0; i < depth; i++){
-				int hash = hash(entry.getKey().hashCode() ^ R[i]);
-				int index = Math.floorMod(hash, width);
+				int hashValue = hash(entry.getKey().hashCode() ^ R[i]);
+				int index = Math.floorMod(hashValue, width);
 				min = Math.min(min, dataStructure[i][index]);
 			}
 			writer.println(entry.getKey() + "\t\t" + min + "\t\t" + entry.getValue());
