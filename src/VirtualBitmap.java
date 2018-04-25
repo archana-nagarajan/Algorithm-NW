@@ -2,15 +2,20 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.jfree.ui.RefineryUtilities;
+
 import java.util.Random;
 import java.util.Set;
 
 public class VirtualBitmap {
 	
 	static Map<String, Set<String>> flowMap = new LinkedHashMap<>();
+	private static HashMap<Integer, Integer> output = new HashMap<>();
 	final static int BIT_ARRAY_SIZE = 100000000;
 	final static int VIRTUAL_VECTOR_SIZE = 150;
 	final static int RAND_SIZE=1000000;
@@ -26,6 +31,7 @@ public class VirtualBitmap {
 			flowMap = db.parseFile(flowMap);
 			onlineOperation(flowMap);
 			offlineOperation(flowMap);
+			printGraph(output);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -35,6 +41,13 @@ public class VirtualBitmap {
 			writer.flush();
 			writer.close();
 		}
+	}
+	
+	private static void printGraph(HashMap<Integer, Integer> output) {
+		GraphGenerator chart = new GraphGenerator("Flow Cardinality", "Orginal vs Estimated", output);
+	    chart.pack();          
+	    RefineryUtilities.centerFrameOnScreen(chart);          
+	    chart.setVisible(true); 
 	}
 	
 	private static void offlineOperation(Map<String, Set<String>> flowMap2) {
@@ -71,7 +84,11 @@ public class VirtualBitmap {
 			int sourceVectorCount = VIRTUAL_VECTOR_SIZE - v.cardinality();
 			double virtualVectorFraction = (double) sourceVectorCount / VIRTUAL_VECTOR_SIZE;
 			double flowSpread = (double) Math.abs (VIRTUAL_VECTOR_SIZE * Math.log(bBitsFraction) - VIRTUAL_VECTOR_SIZE * Math.log(virtualVectorFraction));
-			writer.println(entry.getKey() + "\t" + entry.getValue().size() + "\t" + (int) Math.ceil(flowSpread));
+			if(entry.getValue().size() <= 300){
+				output.put(entry.getValue().size(), (int) Math.ceil(flowSpread));
+				writer.println(entry.getKey() + "\t" + entry.getValue().size() + "\t" + (int) Math.ceil(flowSpread));
+			}
+			
 		}
 	}
 

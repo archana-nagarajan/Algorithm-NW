@@ -4,10 +4,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
+
+import org.jfree.ui.RefineryUtilities;
 
 public class CountMin {
 
@@ -15,6 +18,7 @@ public class CountMin {
 	private static int depth;
 	private static int[][] dataStructure = null;
 	static Map<String, Integer> flowMap = new LinkedHashMap<>();
+	private static HashMap<Integer, Integer> output = new HashMap<>();
 	static PrintWriter writer = null;
 	private static int flowCount = 0;
 	static String traffic = "traffic.txt";
@@ -42,6 +46,7 @@ public class CountMin {
 			new CountMin(3, flowCount);
 			onlineOperation(flowMap);
 			offlineOperation(flowMap);
+			printGraph(output);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -70,6 +75,13 @@ public class CountMin {
             e.printStackTrace();
         }
 	}
+	
+	private static void printGraph(HashMap<Integer, Integer> output) {
+		GraphGenerator chart = new GraphGenerator("Flow Cardinality", "Orginal vs Estimated", output);
+	    chart.pack();          
+	    RefineryUtilities.centerFrameOnScreen(chart);          
+	    chart.setVisible(true); 
+	}
 
 	private static void offlineOperation(Map<String, Integer> flowMap2) {
 		for (Entry<String, Integer> entry : flowMap.entrySet()){
@@ -79,7 +91,8 @@ public class CountMin {
 				int index = Math.floorMod(hashValue, width);
 				min = Math.min(min, dataStructure[i][index]);
 			}
-			writer.println(entry.getKey() + "\t\t" + min + "\t\t" + entry.getValue());
+			output.put(entry.getValue(), min);
+//			writer.println(entry.getKey() + "\t\t" + min + "\t\t" + entry.getValue());
 		}
 	}
 

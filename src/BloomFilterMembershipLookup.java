@@ -18,58 +18,71 @@ public class BloomFilterMembershipLookup {
 	final static int SIZE = 150;
 	final static int QUERYSIZE = 1500;
 	static int R [] = new int [SIZE];
+	static double e= 0.001;
+    static double a= -1* Math.log(e);
+    static double b=Math.pow(Math.log(2), 2);
 	static int n = 0;
 	static int m = 0;
 	static int k = 0;
 	static int bloomFilter[] = null;
 	static List<String> queries = new ArrayList<>();
 	public static void main(String[] args) {
-		try {
-			writer = new PrintWriter("Bloomfilter-output.txt", "UTF-8");
-			parseFile();
-			initializeRandomArray();
-			m = flowCount *10;
-			n = flowCount;
-			bloomFilter = new int[m];
-			k = (int) (Math.log(2) * m / n);
-			onlineOperation(flowSet);
-			List<String> flowlist = new ArrayList<>(flowSet);
-			pickRandomFlows(flowlist);
-			offlineOperation(queries);
-			System.out.println();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		finally{
-			writer.flush();
-			writer.close();
-		}
-	}
-
-	private static void pickRandomFlows(List<String> flowlist) {
-		int temp;
-		for(int i = 0; i < QUERYSIZE; i++){
-			Random rand = new Random();
-			temp = (int)rand.nextInt(flowCount);
-			queries.add(flowlist.get(temp));
-		}
-	}
-
-	private static void offlineOperation(List<String> queries) {
-		boolean exist = true;
-		for(String query : queries){
-			exist = true;
-			for(int i = 0; i < k; i++){
-				int hashValue = hash(query.hashCode() ^ R[i]);
-				int index = Math.floorMod(hashValue, m);
-				if(bloomFilter[index] != 1){
-					exist = false;
-				}
+//		try {
+//			writer = new PrintWriter("Bloomfilter-output.txt", "UTF-8");
+		parseFile();
+		initializeRandomArray();
+		n= flowCount;
+		m = (int) (((a*n)/(b)));
+		bloomFilter = new int[m];
+		k = (int) (Math.log(2) * m / n);
+		onlineOperation(flowSet);
+		Random rand = new Random();
+		int count = 0;
+		for(int i = 0; i < 100000; i++){
+			int length = rand.nextInt(100);
+			String query = generateString(length);
+			boolean exist = membershipLookup(query);
+			if(exist){
+				count++;
 			}
-			writer.println(query + "\t\t" + exist);
 		}
+		double falsePositive = count /100000.00;
+		System.out.printf("Theoretical false positive: %.3f", e);
+		System.out.println("\n");
+		System.out.printf("False Positive rate: %.3f", falsePositive);
+//		}
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (UnsupportedEncodingException e) {
+//			e.printStackTrace();
+//		}
+//		finally{
+//			writer.flush();
+//			writer.close();
+//		}
+	}
+
+	private static String generateString(int count) {
+		final String ALPHA_NUMERIC_STRING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		StringBuilder builder = new StringBuilder();
+		for(int j = 0; j < count; j++){
+			int character = (int)(Math.random()*ALPHA_NUMERIC_STRING.length());
+			builder.append(ALPHA_NUMERIC_STRING.charAt(character));
+		}
+		return builder.toString();
+	}
+
+	private static boolean membershipLookup(String query) {
+		boolean exist = true;
+		for(int i = 0; i < k; i++){
+			int hashValue = hash(query.hashCode() ^ R[i]);
+			int index = Math.floorMod(hashValue, m);
+			if(bloomFilter[index] != 1){
+				exist = false;
+				break;
+			}
+		}
+		return exist;
 	}
 
 	private static void onlineOperation(Set<String> flowSet) {
