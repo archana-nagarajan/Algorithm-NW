@@ -84,7 +84,7 @@ public class VirtualBitmap {
 			int sourceVectorCount = VIRTUAL_VECTOR_SIZE - v.cardinality();
 			double virtualVectorFraction = (double) sourceVectorCount / VIRTUAL_VECTOR_SIZE;
 			double flowSpread = (double) Math.abs (VIRTUAL_VECTOR_SIZE * Math.log(bBitsFraction) - VIRTUAL_VECTOR_SIZE * Math.log(virtualVectorFraction));
-			if(entry.getValue().size() <= 300){
+			if(entry.getValue().size() <= 150){
 				output.put(entry.getValue().size(), (int) Math.ceil(flowSpread));
 				writer.println(entry.getKey() + "\t" + entry.getValue().size() + "\t" + (int) Math.ceil(flowSpread));
 			}

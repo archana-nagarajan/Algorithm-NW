@@ -92,7 +92,7 @@ public class CountMin {
 				min = Math.min(min, dataStructure[i][index]);
 			}
 			output.put(entry.getValue(), min);
-//			writer.println(entry.getKey() + "\t\t" + min + "\t\t" + entry.getValue());
+			writer.println(entry.getKey() + "\t\t" + entry.getValue() + "\t\t" + min);
 		}
 	}
 

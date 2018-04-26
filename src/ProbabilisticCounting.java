@@ -30,7 +30,6 @@ public class ProbabilisticCounting {
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -52,7 +51,7 @@ public class ProbabilisticCounting {
 			double spreadEstimate = -1 * SIZE * (Math.log(emptyBitsFraction));
 			if(spreadEstimate <= 3000){
 				output.put(entry.getValue().size(), (int) spreadEstimate);
-				writer.println(entry.getValue().size() + "\t" + (int) spreadEstimate);
+				writer.println(entry.getKey() + "\t" + entry.getValue().size() + "\t" + (int) spreadEstimate);
 			}
 			bitset.clear();
 		}

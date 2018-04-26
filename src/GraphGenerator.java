@@ -28,18 +28,23 @@ public class GraphGenerator extends ApplicationFrame {
       final XYPlot plot = xylineChart.getXYPlot();
       XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
       renderer.setSeriesPaint( 0 , Color.RED );
+      renderer.setSeriesPaint( 1 , Color.GREEN );
       renderer.setSeriesStroke( 0 , new BasicStroke( 1.0f ) );
+      renderer.setSeriesStroke( 1 , new BasicStroke( 1.0f ) );
       plot.setRenderer( renderer ); 
       setContentPane( chartPanel ); 
    }
    
    private XYDataset createDataset(HashMap<Integer, Integer> resultGraph){
-      final XYSeries firefox = new XYSeries( "Flow Cardinality (Actual vs Estimated)" );  
+      final XYSeries firefox = new XYSeries( "Flow Cardinality (Actual vs Estimated)" ); 
+      final XYSeries firefox1 = new XYSeries("Linear plot");
       for(Map.Entry<Integer, Integer> entry : resultGraph.entrySet()){  
 			firefox.add( entry.getKey() , entry.getValue());
+			firefox1.add( entry.getKey() , entry.getKey());
       }     
       final XYSeriesCollection dataset = new XYSeriesCollection();          
       dataset.addSeries( firefox );
+      dataset.addSeries( firefox1 );
       return dataset;
    }
 }

@@ -1,9 +1,7 @@
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,8 +25,6 @@ public class BloomFilterMembershipLookup {
 	static int bloomFilter[] = null;
 	static List<String> queries = new ArrayList<>();
 	public static void main(String[] args) {
-//		try {
-//			writer = new PrintWriter("Bloomfilter-output.txt", "UTF-8");
 		parseFile();
 		initializeRandomArray();
 		n= flowCount;
@@ -47,19 +43,16 @@ public class BloomFilterMembershipLookup {
 			}
 		}
 		double falsePositive = count /100000.00;
+		double falseNegative = (100000 - count) / 100000.00;
+		System.out.println("Size of Bloom Filter (Optimal): "+ m );
+		System.out.println("Number of elements encoded: "+ n );
+        System.out.println("Number of elements queried: "+ 10000 );
+        System.out.println("Number of hash functions: k = "+ k);
 		System.out.printf("Theoretical false positive: %.3f", e);
-		System.out.println("\n");
-		System.out.printf("False Positive rate: %.3f", falsePositive);
-//		}
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		} catch (UnsupportedEncodingException e) {
-//			e.printStackTrace();
-//		}
-//		finally{
-//			writer.flush();
-//			writer.close();
-//		}
+		System.out.print("\n");
+		System.out.printf("Actual False Positive rate: %.3f", falsePositive);
+		System.out.print("\n");
+		System.out.printf("Actual False Negative rate: %.3f", falseNegative);
 	}
 
 	private static String generateString(int count) {
