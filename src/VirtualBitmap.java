@@ -17,7 +17,7 @@ public class VirtualBitmap {
 	static Map<String, Set<String>> flowMap = new LinkedHashMap<>();
 	private static HashMap<Integer, Integer> output = new HashMap<>();
 	final static int BIT_ARRAY_SIZE = 100000000;
-	final static int VIRTUAL_VECTOR_SIZE = 150;
+	final static int VIRTUAL_VECTOR_SIZE = 200;
 	final static int RAND_SIZE=1000000;
 	static BitSet bitArray = new BitSet(BIT_ARRAY_SIZE);
 	static int R [] = new int [VIRTUAL_VECTOR_SIZE];
@@ -51,32 +51,37 @@ public class VirtualBitmap {
 	}
 	
 	private static void offlineOperation(Map<String, Set<String>> flowMap2) {
-//		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
-//			String source = entry.getKey();
-//			BitSet virtualVector  = new BitSet(VIRTUAL_VECTOR_SIZE);
-//			for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
-//				int value = Math.floorMod(hash(source.hashCode() ^ R[i]), VIRTUAL_VECTOR_SIZE);
-//				if(bitArray.get(value))
-//					virtualVector.set(value);
-//			}
-//			virtual.put(source, virtualVector);
-//		}
-		BitSet virtualVector = null;
 		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
 			String source = entry.getKey();
-			Set<String> destinations = entry.getValue();
-			for(String dest : destinations){
-				if(virtual.containsKey(source))
-					virtualVector  = virtual.get(source);
-				else{
-					virtualVector = new BitSet(VIRTUAL_VECTOR_SIZE);
-					virtual.put(source, virtualVector);
-				}
-				int destHash = Math.floorMod(dest.hashCode() , VIRTUAL_VECTOR_SIZE);
-				int value = Math.floorMod(hash(source.hashCode() ^ R[destHash]) , VIRTUAL_VECTOR_SIZE);
-				virtualVector.set(value);
+			BitSet virtualVector  = new BitSet(VIRTUAL_VECTOR_SIZE);
+			for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
+				int value = Math.floorMod(hash(source.hashCode() ^ R[i]), BIT_ARRAY_SIZE);
+				int virtualValue = Math.floorMod(hash(source.hashCode() ^ R[i]) , VIRTUAL_VECTOR_SIZE);
+				if(bitArray.get(value))
+					virtualVector.set(virtualValue);
 			}
+			virtual.put(source, virtualVector);
 		}
+//		BitSet virtualVector = null;
+//		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
+//			String source = entry.getKey();
+//			int i = 0;
+//			Set<String> destinations = entry.getValue();
+//			for(String dest : destinations){
+//				if(virtual.containsKey(source))
+//					virtualVector  = virtual.get(source);
+//				else{
+//					virtualVector = new BitSet(VIRTUAL_VECTOR_SIZE);
+//					virtual.put(source, virtualVector);
+//				}
+//				int destHash = Math.floorMod(dest.hashCode() , BIT_ARRAY_SIZE);
+//				int value = Math.floorMod(hash(source.hashCode() ^ R[destHash]) , BIT_ARRAY_SIZE);
+//				int virtualValue = Math.floorMod(hash(source.hashCode() ^ R[i]) , VIRTUAL_VECTOR_SIZE);
+//				if(bitArray.get(value))
+//					virtualVector.set(virtualValue);
+//				i++;
+//			}
+//		}
 		long numberOfZeroBitsInBitArray =  BIT_ARRAY_SIZE - bitArray.cardinality();
 		double bBitsFraction = (double) numberOfZeroBitsInBitArray / BIT_ARRAY_SIZE;
 		for (Entry<String, Set<String>> entry : flowMap.entrySet()){
@@ -84,7 +89,7 @@ public class VirtualBitmap {
 			int sourceVectorCount = VIRTUAL_VECTOR_SIZE - v.cardinality();
 			double virtualVectorFraction = (double) sourceVectorCount / VIRTUAL_VECTOR_SIZE;
 			double flowSpread = (double) Math.abs (VIRTUAL_VECTOR_SIZE * Math.log(bBitsFraction) - VIRTUAL_VECTOR_SIZE * Math.log(virtualVectorFraction));
-			if(entry.getValue().size() <= 150){
+			if(entry.getValue().size() <= 150 && flowSpread <= 150){
 				output.put(entry.getValue().size(), (int) Math.ceil(flowSpread));
 				writer.println(entry.getKey() + "\t" + entry.getValue().size() + "\t" + (int) Math.ceil(flowSpread));
 			}

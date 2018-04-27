@@ -65,9 +65,10 @@ public class VirtualFM {
 			double flowSpread = (noOfFmSketches * temp) / phi;
 			double estimatedCardinality = ((arraySize * noOfFmSketches) / (arraySize - noOfFmSketches)) * 
 					((flowSpread / noOfFmSketches) - (nCap / arraySize));
-			writer.println(entry.getValue().size() + "\t\t" + (int) Math.ceil(estimatedCardinality));
-			output.put(entry.getValue().size(), (int) Math.ceil(estimatedCardinality));
-			
+			if(entry.getValue().size() <= 100 && (int) Math.ceil(estimatedCardinality) <= 100){
+				writer.println(entry.getKey() + "\t\t" + entry.getValue().size() + "\t\t" + (int) Math.ceil(estimatedCardinality));
+				output.put(entry.getValue().size(), (int) Math.ceil(estimatedCardinality));
+			}
 		}
 	}
 	
