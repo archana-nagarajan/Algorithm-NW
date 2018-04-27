@@ -56,7 +56,7 @@ public class VirtualBitmap {
 			BitSet virtualVector  = new BitSet(VIRTUAL_VECTOR_SIZE);
 			for(int i = 0; i < VIRTUAL_VECTOR_SIZE; i++){
 				int value = Math.floorMod(hash(source.hashCode() ^ R[i]), BIT_ARRAY_SIZE);
-				int virtualValue = Math.floorMod(hash(source.hashCode() ^ R[i]) , VIRTUAL_VECTOR_SIZE);
+				int virtualValue = Math.floorMod(value , VIRTUAL_VECTOR_SIZE);
 				if(bitArray.get(value))
 					virtualVector.set(virtualValue);
 			}
